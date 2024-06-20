@@ -16,17 +16,35 @@ import * as errors from "../../errors";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
+import * as nestAccessControl from "nest-access-control";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { VideoDownloadService } from "../videoDownload.service";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { VideoDownloadCreateInput } from "./VideoDownloadCreateInput";
 import { VideoDownload } from "./VideoDownload";
 import { VideoDownloadFindManyArgs } from "./VideoDownloadFindManyArgs";
 import { VideoDownloadWhereUniqueInput } from "./VideoDownloadWhereUniqueInput";
 import { VideoDownloadUpdateInput } from "./VideoDownloadUpdateInput";
 
+@swagger.ApiBearerAuth()
+@common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class VideoDownloadControllerBase {
-  constructor(protected readonly service: VideoDownloadService) {}
+  constructor(
+    protected readonly service: VideoDownloadService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: VideoDownload })
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "create",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async createVideoDownload(
     @common.Body() data: VideoDownloadCreateInput
   ): Promise<VideoDownload> {
@@ -40,9 +58,18 @@ export class VideoDownloadControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
   @swagger.ApiOkResponse({ type: [VideoDownload] })
   @ApiNestedQuery(VideoDownloadFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "read",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async videoDownloads(
     @common.Req() request: Request
   ): Promise<VideoDownload[]> {
@@ -57,9 +84,18 @@ export class VideoDownloadControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
   @swagger.ApiOkResponse({ type: VideoDownload })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "read",
+    possession: "own",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async videoDownload(
     @common.Param() params: VideoDownloadWhereUniqueInput
   ): Promise<VideoDownload | null> {
@@ -79,9 +115,18 @@ export class VideoDownloadControllerBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
   @swagger.ApiOkResponse({ type: VideoDownload })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "update",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async updateVideoDownload(
     @common.Param() params: VideoDownloadWhereUniqueInput,
     @common.Body() data: VideoDownloadUpdateInput
@@ -109,6 +154,14 @@ export class VideoDownloadControllerBase {
   @common.Delete("/:id")
   @swagger.ApiOkResponse({ type: VideoDownload })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "delete",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async deleteVideoDownload(
     @common.Param() params: VideoDownloadWhereUniqueInput
   ): Promise<VideoDownload | null> {

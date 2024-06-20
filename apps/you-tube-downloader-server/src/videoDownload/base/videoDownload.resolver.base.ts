@@ -13,16 +13,31 @@ import * as graphql from "@nestjs/graphql";
 import { GraphQLError } from "graphql";
 import { isRecordNotFoundError } from "../../prisma.util";
 import { MetaQueryPayload } from "../../util/MetaQueryPayload";
+import * as nestAccessControl from "nest-access-control";
+import * as gqlACGuard from "../../auth/gqlAC.guard";
+import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
+import * as common from "@nestjs/common";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { VideoDownload } from "./VideoDownload";
 import { VideoDownloadCountArgs } from "./VideoDownloadCountArgs";
 import { VideoDownloadFindManyArgs } from "./VideoDownloadFindManyArgs";
 import { VideoDownloadFindUniqueArgs } from "./VideoDownloadFindUniqueArgs";
 import { DeleteVideoDownloadArgs } from "./DeleteVideoDownloadArgs";
 import { VideoDownloadService } from "../videoDownload.service";
+@common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => VideoDownload)
 export class VideoDownloadResolverBase {
-  constructor(protected readonly service: VideoDownloadService) {}
+  constructor(
+    protected readonly service: VideoDownloadService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
 
+  @graphql.Query(() => MetaQueryPayload)
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "read",
+    possession: "any",
+  })
   async _videoDownloadsMeta(
     @graphql.Args() args: VideoDownloadCountArgs
   ): Promise<MetaQueryPayload> {
@@ -32,14 +47,26 @@ export class VideoDownloadResolverBase {
     };
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => [VideoDownload])
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "read",
+    possession: "any",
+  })
   async videoDownloads(
     @graphql.Args() args: VideoDownloadFindManyArgs
   ): Promise<VideoDownload[]> {
     return this.service.videoDownloads(args);
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => VideoDownload, { nullable: true })
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "read",
+    possession: "own",
+  })
   async videoDownload(
     @graphql.Args() args: VideoDownloadFindUniqueArgs
   ): Promise<VideoDownload | null> {
@@ -51,6 +78,11 @@ export class VideoDownloadResolverBase {
   }
 
   @graphql.Mutation(() => VideoDownload)
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "delete",
+    possession: "any",
+  })
   async deleteVideoDownload(
     @graphql.Args() args: DeleteVideoDownloadArgs
   ): Promise<VideoDownload | null> {
