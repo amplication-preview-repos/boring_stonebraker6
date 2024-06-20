@@ -26,6 +26,12 @@ import { User } from "./User";
 import { UserFindManyArgs } from "./UserFindManyArgs";
 import { UserWhereUniqueInput } from "./UserWhereUniqueInput";
 import { UserUpdateInput } from "./UserUpdateInput";
+import { SubscriptionFindManyArgs } from "../../subscription/base/SubscriptionFindManyArgs";
+import { Subscription } from "../../subscription/base/Subscription";
+import { SubscriptionWhereUniqueInput } from "../../subscription/base/SubscriptionWhereUniqueInput";
+import { VideoDownloadFindManyArgs } from "../../videoDownload/base/VideoDownloadFindManyArgs";
+import { VideoDownload } from "../../videoDownload/base/VideoDownload";
+import { VideoDownloadWhereUniqueInput } from "../../videoDownload/base/VideoDownloadWhereUniqueInput";
 
 @swagger.ApiBearerAuth()
 @common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
@@ -203,5 +209,219 @@ export class UserControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @common.Get("/:id/subscriptions")
+  @ApiNestedQuery(SubscriptionFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Subscription",
+    action: "read",
+    possession: "any",
+  })
+  async findSubscriptions(
+    @common.Req() request: Request,
+    @common.Param() params: UserWhereUniqueInput
+  ): Promise<Subscription[]> {
+    const query = plainToClass(SubscriptionFindManyArgs, request.query);
+    const results = await this.service.findSubscriptions(params.id, {
+      ...query,
+      select: {
+        createdAt: true,
+        endDate: true,
+        id: true,
+        startDate: true,
+
+        subscriptionPlan: {
+          select: {
+            id: true,
+          },
+        },
+
+        updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+    if (results === null) {
+      throw new errors.NotFoundException(
+        `No resource was found for ${JSON.stringify(params)}`
+      );
+    }
+    return results;
+  }
+
+  @common.Post("/:id/subscriptions")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async connectSubscriptions(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: SubscriptionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      subscriptions: {
+        connect: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Patch("/:id/subscriptions")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async updateSubscriptions(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: SubscriptionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      subscriptions: {
+        set: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Delete("/:id/subscriptions")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async disconnectSubscriptions(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: SubscriptionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      subscriptions: {
+        disconnect: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @common.Get("/:id/videoDownloads")
+  @ApiNestedQuery(VideoDownloadFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "read",
+    possession: "any",
+  })
+  async findVideoDownloads(
+    @common.Req() request: Request,
+    @common.Param() params: UserWhereUniqueInput
+  ): Promise<VideoDownload[]> {
+    const query = plainToClass(VideoDownloadFindManyArgs, request.query);
+    const results = await this.service.findVideoDownloads(params.id, {
+      ...query,
+      select: {
+        createdAt: true,
+        downloadStatus: true,
+        id: true,
+        updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+
+        videoUrl: true,
+      },
+    });
+    if (results === null) {
+      throw new errors.NotFoundException(
+        `No resource was found for ${JSON.stringify(params)}`
+      );
+    }
+    return results;
+  }
+
+  @common.Post("/:id/videoDownloads")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async connectVideoDownloads(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: VideoDownloadWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      videoDownloads: {
+        connect: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Patch("/:id/videoDownloads")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async updateVideoDownloads(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: VideoDownloadWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      videoDownloads: {
+        set: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Delete("/:id/videoDownloads")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async disconnectVideoDownloads(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: VideoDownloadWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      videoDownloads: {
+        disconnect: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
   }
 }

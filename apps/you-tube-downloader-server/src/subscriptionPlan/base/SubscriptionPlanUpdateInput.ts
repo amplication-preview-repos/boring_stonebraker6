@@ -9,5 +9,64 @@ https://docs.amplication.com/how-to/custom-code
 
 ------------------------------------------------------------------------------
   */
-class SubscriptionPlanUpdateInput {}
+import { InputType, Field } from "@nestjs/graphql";
+import { ApiProperty } from "@nestjs/swagger";
+import {
+  IsInt,
+  IsOptional,
+  IsString,
+  IsNumber,
+  ValidateNested,
+} from "class-validator";
+import { SubscriptionUpdateManyWithoutSubscriptionPlansInput } from "./SubscriptionUpdateManyWithoutSubscriptionPlansInput";
+import { Type } from "class-transformer";
+
+@InputType()
+class SubscriptionPlanUpdateInput {
+  @ApiProperty({
+    required: false,
+    type: Number,
+  })
+  @IsInt()
+  @IsOptional()
+  @Field(() => Number, {
+    nullable: true,
+  })
+  duration?: number | null;
+
+  @ApiProperty({
+    required: false,
+    type: String,
+  })
+  @IsString()
+  @IsOptional()
+  @Field(() => String, {
+    nullable: true,
+  })
+  name?: string | null;
+
+  @ApiProperty({
+    required: false,
+    type: Number,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Field(() => Number, {
+    nullable: true,
+  })
+  price?: number | null;
+
+  @ApiProperty({
+    required: false,
+    type: () => SubscriptionUpdateManyWithoutSubscriptionPlansInput,
+  })
+  @ValidateNested()
+  @Type(() => SubscriptionUpdateManyWithoutSubscriptionPlansInput)
+  @IsOptional()
+  @Field(() => SubscriptionUpdateManyWithoutSubscriptionPlansInput, {
+    nullable: true,
+  })
+  subscriptions?: SubscriptionUpdateManyWithoutSubscriptionPlansInput;
+}
+
 export { SubscriptionPlanUpdateInput as SubscriptionPlanUpdateInput };

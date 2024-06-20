@@ -11,8 +11,16 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsString } from "class-validator";
+import {
+  IsDate,
+  IsEnum,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from "class-validator";
 import { Type } from "class-transformer";
+import { EnumVideoDownloadDownloadStatus } from "./EnumVideoDownloadDownloadStatus";
+import { User } from "../../user/base/User";
 
 @ObjectType()
 class VideoDownload {
@@ -23,6 +31,17 @@ class VideoDownload {
   @Type(() => Date)
   @Field(() => Date)
   createdAt!: Date;
+
+  @ApiProperty({
+    required: false,
+    enum: EnumVideoDownloadDownloadStatus,
+  })
+  @IsEnum(EnumVideoDownloadDownloadStatus)
+  @IsOptional()
+  @Field(() => EnumVideoDownloadDownloadStatus, {
+    nullable: true,
+  })
+  downloadStatus?: "Option1" | null;
 
   @ApiProperty({
     required: true,
@@ -39,6 +58,26 @@ class VideoDownload {
   @Type(() => Date)
   @Field(() => Date)
   updatedAt!: Date;
+
+  @ApiProperty({
+    required: false,
+    type: () => User,
+  })
+  @ValidateNested()
+  @Type(() => User)
+  @IsOptional()
+  user?: User | null;
+
+  @ApiProperty({
+    required: false,
+    type: String,
+  })
+  @IsString()
+  @IsOptional()
+  @Field(() => String, {
+    nullable: true,
+  })
+  videoUrl!: string | null;
 }
 
 export { VideoDownload as VideoDownload };

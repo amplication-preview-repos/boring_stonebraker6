@@ -11,12 +11,26 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
+import { EnumVideoDownloadDownloadStatus } from "./EnumVideoDownloadDownloadStatus";
+import { IsEnum, IsOptional, ValidateNested } from "class-validator";
 import { StringFilter } from "../../util/StringFilter";
 import { Type } from "class-transformer";
-import { IsOptional } from "class-validator";
+import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
+import { StringNullableFilter } from "../../util/StringNullableFilter";
 
 @InputType()
 class VideoDownloadWhereInput {
+  @ApiProperty({
+    required: false,
+    enum: EnumVideoDownloadDownloadStatus,
+  })
+  @IsEnum(EnumVideoDownloadDownloadStatus)
+  @IsOptional()
+  @Field(() => EnumVideoDownloadDownloadStatus, {
+    nullable: true,
+  })
+  downloadStatus?: "Option1";
+
   @ApiProperty({
     required: false,
     type: StringFilter,
@@ -27,6 +41,29 @@ class VideoDownloadWhereInput {
     nullable: true,
   })
   id?: StringFilter;
+
+  @ApiProperty({
+    required: false,
+    type: () => UserWhereUniqueInput,
+  })
+  @ValidateNested()
+  @Type(() => UserWhereUniqueInput)
+  @IsOptional()
+  @Field(() => UserWhereUniqueInput, {
+    nullable: true,
+  })
+  user?: UserWhereUniqueInput;
+
+  @ApiProperty({
+    required: false,
+    type: StringNullableFilter,
+  })
+  @Type(() => StringNullableFilter)
+  @IsOptional()
+  @Field(() => StringNullableFilter, {
+    nullable: true,
+  })
+  videoUrl?: StringNullableFilter;
 }
 
 export { VideoDownloadWhereInput as VideoDownloadWhereInput };

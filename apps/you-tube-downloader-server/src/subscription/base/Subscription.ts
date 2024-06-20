@@ -11,8 +11,10 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsString } from "class-validator";
+import { IsDate, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
+import { SubscriptionPlan } from "../../subscriptionPlan/base/SubscriptionPlan";
+import { User } from "../../user/base/User";
 
 @ObjectType()
 class Subscription {
@@ -25,6 +27,17 @@ class Subscription {
   createdAt!: Date;
 
   @ApiProperty({
+    required: false,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Field(() => Date, {
+    nullable: true,
+  })
+  endDate!: Date | null;
+
+  @ApiProperty({
     required: true,
     type: String,
   })
@@ -33,12 +46,41 @@ class Subscription {
   id!: string;
 
   @ApiProperty({
+    required: false,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Field(() => Date, {
+    nullable: true,
+  })
+  startDate!: Date | null;
+
+  @ApiProperty({
+    required: false,
+    type: () => SubscriptionPlan,
+  })
+  @ValidateNested()
+  @Type(() => SubscriptionPlan)
+  @IsOptional()
+  subscriptionPlan?: SubscriptionPlan | null;
+
+  @ApiProperty({
     required: true,
   })
   @IsDate()
   @Type(() => Date)
   @Field(() => Date)
   updatedAt!: Date;
+
+  @ApiProperty({
+    required: false,
+    type: () => User,
+  })
+  @ValidateNested()
+  @Type(() => User)
+  @IsOptional()
+  user?: User | null;
 }
 
 export { Subscription as Subscription };

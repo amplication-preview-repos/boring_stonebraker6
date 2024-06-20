@@ -10,7 +10,11 @@ https://docs.amplication.com/how-to/custom-code
 ------------------------------------------------------------------------------
   */
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, VideoDownload as PrismaVideoDownload } from "@prisma/client";
+import {
+  Prisma,
+  VideoDownload as PrismaVideoDownload,
+  User as PrismaUser,
+} from "@prisma/client";
 
 export class VideoDownloadServiceBase {
   constructor(protected readonly prisma: PrismaService) {}
@@ -45,5 +49,13 @@ export class VideoDownloadServiceBase {
     args: Prisma.VideoDownloadDeleteArgs
   ): Promise<PrismaVideoDownload> {
     return this.prisma.videoDownload.delete(args);
+  }
+
+  async getUser(parentId: string): Promise<PrismaUser | null> {
+    return this.prisma.videoDownload
+      .findUnique({
+        where: { id: parentId },
+      })
+      .user();
   }
 }

@@ -18,11 +18,16 @@ import * as gqlACGuard from "../../auth/gqlAC.guard";
 import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Subscription } from "./Subscription";
 import { SubscriptionCountArgs } from "./SubscriptionCountArgs";
 import { SubscriptionFindManyArgs } from "./SubscriptionFindManyArgs";
 import { SubscriptionFindUniqueArgs } from "./SubscriptionFindUniqueArgs";
+import { CreateSubscriptionArgs } from "./CreateSubscriptionArgs";
+import { UpdateSubscriptionArgs } from "./UpdateSubscriptionArgs";
 import { DeleteSubscriptionArgs } from "./DeleteSubscriptionArgs";
+import { SubscriptionPlan } from "../../subscriptionPlan/base/SubscriptionPlan";
+import { User } from "../../user/base/User";
 import { SubscriptionService } from "../subscription.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Subscription)
@@ -77,6 +82,75 @@ export class SubscriptionResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Subscription)
+  @nestAccessControl.UseRoles({
+    resource: "Subscription",
+    action: "create",
+    possession: "any",
+  })
+  async createSubscription(
+    @graphql.Args() args: CreateSubscriptionArgs
+  ): Promise<Subscription> {
+    return await this.service.createSubscription({
+      ...args,
+      data: {
+        ...args.data,
+
+        subscriptionPlan: args.data.subscriptionPlan
+          ? {
+              connect: args.data.subscriptionPlan,
+            }
+          : undefined,
+
+        user: args.data.user
+          ? {
+              connect: args.data.user,
+            }
+          : undefined,
+      },
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Subscription)
+  @nestAccessControl.UseRoles({
+    resource: "Subscription",
+    action: "update",
+    possession: "any",
+  })
+  async updateSubscription(
+    @graphql.Args() args: UpdateSubscriptionArgs
+  ): Promise<Subscription | null> {
+    try {
+      return await this.service.updateSubscription({
+        ...args,
+        data: {
+          ...args.data,
+
+          subscriptionPlan: args.data.subscriptionPlan
+            ? {
+                connect: args.data.subscriptionPlan,
+              }
+            : undefined,
+
+          user: args.data.user
+            ? {
+                connect: args.data.user,
+              }
+            : undefined,
+        },
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
   @graphql.Mutation(() => Subscription)
   @nestAccessControl.UseRoles({
     resource: "Subscription",
@@ -96,5 +170,45 @@ export class SubscriptionResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => SubscriptionPlan, {
+    nullable: true,
+    name: "subscriptionPlan",
+  })
+  @nestAccessControl.UseRoles({
+    resource: "SubscriptionPlan",
+    action: "read",
+    possession: "any",
+  })
+  async getSubscriptionPlan(
+    @graphql.Parent() parent: Subscription
+  ): Promise<SubscriptionPlan | null> {
+    const result = await this.service.getSubscriptionPlan(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => User, {
+    nullable: true,
+    name: "user",
+  })
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "read",
+    possession: "any",
+  })
+  async getUser(@graphql.Parent() parent: Subscription): Promise<User | null> {
+    const result = await this.service.getUser(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
   }
 }

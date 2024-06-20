@@ -18,11 +18,16 @@ import * as gqlACGuard from "../../auth/gqlAC.guard";
 import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { SubscriptionPlan } from "./SubscriptionPlan";
 import { SubscriptionPlanCountArgs } from "./SubscriptionPlanCountArgs";
 import { SubscriptionPlanFindManyArgs } from "./SubscriptionPlanFindManyArgs";
 import { SubscriptionPlanFindUniqueArgs } from "./SubscriptionPlanFindUniqueArgs";
+import { CreateSubscriptionPlanArgs } from "./CreateSubscriptionPlanArgs";
+import { UpdateSubscriptionPlanArgs } from "./UpdateSubscriptionPlanArgs";
 import { DeleteSubscriptionPlanArgs } from "./DeleteSubscriptionPlanArgs";
+import { SubscriptionFindManyArgs } from "../../subscription/base/SubscriptionFindManyArgs";
+import { Subscription } from "../../subscription/base/Subscription";
 import { SubscriptionPlanService } from "../subscriptionPlan.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => SubscriptionPlan)
@@ -77,6 +82,47 @@ export class SubscriptionPlanResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => SubscriptionPlan)
+  @nestAccessControl.UseRoles({
+    resource: "SubscriptionPlan",
+    action: "create",
+    possession: "any",
+  })
+  async createSubscriptionPlan(
+    @graphql.Args() args: CreateSubscriptionPlanArgs
+  ): Promise<SubscriptionPlan> {
+    return await this.service.createSubscriptionPlan({
+      ...args,
+      data: args.data,
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => SubscriptionPlan)
+  @nestAccessControl.UseRoles({
+    resource: "SubscriptionPlan",
+    action: "update",
+    possession: "any",
+  })
+  async updateSubscriptionPlan(
+    @graphql.Args() args: UpdateSubscriptionPlanArgs
+  ): Promise<SubscriptionPlan | null> {
+    try {
+      return await this.service.updateSubscriptionPlan({
+        ...args,
+        data: args.data,
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
   @graphql.Mutation(() => SubscriptionPlan)
   @nestAccessControl.UseRoles({
     resource: "SubscriptionPlan",
@@ -96,5 +142,25 @@ export class SubscriptionPlanResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => [Subscription], { name: "subscriptions" })
+  @nestAccessControl.UseRoles({
+    resource: "Subscription",
+    action: "read",
+    possession: "any",
+  })
+  async findSubscriptions(
+    @graphql.Parent() parent: SubscriptionPlan,
+    @graphql.Args() args: SubscriptionFindManyArgs
+  ): Promise<Subscription[]> {
+    const results = await this.service.findSubscriptions(parent.id, args);
+
+    if (!results) {
+      return [];
+    }
+
+    return results;
   }
 }

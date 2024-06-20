@@ -18,11 +18,15 @@ import * as gqlACGuard from "../../auth/gqlAC.guard";
 import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { VideoDownload } from "./VideoDownload";
 import { VideoDownloadCountArgs } from "./VideoDownloadCountArgs";
 import { VideoDownloadFindManyArgs } from "./VideoDownloadFindManyArgs";
 import { VideoDownloadFindUniqueArgs } from "./VideoDownloadFindUniqueArgs";
+import { CreateVideoDownloadArgs } from "./CreateVideoDownloadArgs";
+import { UpdateVideoDownloadArgs } from "./UpdateVideoDownloadArgs";
 import { DeleteVideoDownloadArgs } from "./DeleteVideoDownloadArgs";
+import { User } from "../../user/base/User";
 import { VideoDownloadService } from "../videoDownload.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => VideoDownload)
@@ -77,6 +81,63 @@ export class VideoDownloadResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => VideoDownload)
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "create",
+    possession: "any",
+  })
+  async createVideoDownload(
+    @graphql.Args() args: CreateVideoDownloadArgs
+  ): Promise<VideoDownload> {
+    return await this.service.createVideoDownload({
+      ...args,
+      data: {
+        ...args.data,
+
+        user: args.data.user
+          ? {
+              connect: args.data.user,
+            }
+          : undefined,
+      },
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => VideoDownload)
+  @nestAccessControl.UseRoles({
+    resource: "VideoDownload",
+    action: "update",
+    possession: "any",
+  })
+  async updateVideoDownload(
+    @graphql.Args() args: UpdateVideoDownloadArgs
+  ): Promise<VideoDownload | null> {
+    try {
+      return await this.service.updateVideoDownload({
+        ...args,
+        data: {
+          ...args.data,
+
+          user: args.data.user
+            ? {
+                connect: args.data.user,
+              }
+            : undefined,
+        },
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
   @graphql.Mutation(() => VideoDownload)
   @nestAccessControl.UseRoles({
     resource: "VideoDownload",
@@ -96,5 +157,24 @@ export class VideoDownloadResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => User, {
+    nullable: true,
+    name: "user",
+  })
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "read",
+    possession: "any",
+  })
+  async getUser(@graphql.Parent() parent: VideoDownload): Promise<User | null> {
+    const result = await this.service.getUser(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
   }
 }

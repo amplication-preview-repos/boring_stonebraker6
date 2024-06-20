@@ -49,11 +49,40 @@ export class SubscriptionControllerBase {
     @common.Body() data: SubscriptionCreateInput
   ): Promise<Subscription> {
     return await this.service.createSubscription({
-      data: data,
+      data: {
+        ...data,
+
+        subscriptionPlan: data.subscriptionPlan
+          ? {
+              connect: data.subscriptionPlan,
+            }
+          : undefined,
+
+        user: data.user
+          ? {
+              connect: data.user,
+            }
+          : undefined,
+      },
       select: {
         createdAt: true,
+        endDate: true,
         id: true,
+        startDate: true,
+
+        subscriptionPlan: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
   }
@@ -76,8 +105,23 @@ export class SubscriptionControllerBase {
       ...args,
       select: {
         createdAt: true,
+        endDate: true,
         id: true,
+        startDate: true,
+
+        subscriptionPlan: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
   }
@@ -101,8 +145,23 @@ export class SubscriptionControllerBase {
       where: params,
       select: {
         createdAt: true,
+        endDate: true,
         id: true,
+        startDate: true,
+
+        subscriptionPlan: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
     if (result === null) {
@@ -132,11 +191,40 @@ export class SubscriptionControllerBase {
     try {
       return await this.service.updateSubscription({
         where: params,
-        data: data,
+        data: {
+          ...data,
+
+          subscriptionPlan: data.subscriptionPlan
+            ? {
+                connect: data.subscriptionPlan,
+              }
+            : undefined,
+
+          user: data.user
+            ? {
+                connect: data.user,
+              }
+            : undefined,
+        },
         select: {
           createdAt: true,
+          endDate: true,
           id: true,
+          startDate: true,
+
+          subscriptionPlan: {
+            select: {
+              id: true,
+            },
+          },
+
           updatedAt: true,
+
+          user: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -168,8 +256,23 @@ export class SubscriptionControllerBase {
         where: params,
         select: {
           createdAt: true,
+          endDate: true,
           id: true,
+          startDate: true,
+
+          subscriptionPlan: {
+            select: {
+              id: true,
+            },
+          },
+
           updatedAt: true,
+
+          user: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
     } catch (error) {

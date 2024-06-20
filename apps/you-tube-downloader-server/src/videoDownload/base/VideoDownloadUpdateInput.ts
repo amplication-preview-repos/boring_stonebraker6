@@ -9,5 +9,48 @@ https://docs.amplication.com/how-to/custom-code
 
 ------------------------------------------------------------------------------
   */
-class VideoDownloadUpdateInput {}
+import { InputType, Field } from "@nestjs/graphql";
+import { ApiProperty } from "@nestjs/swagger";
+import { EnumVideoDownloadDownloadStatus } from "./EnumVideoDownloadDownloadStatus";
+import { IsEnum, IsOptional, ValidateNested, IsString } from "class-validator";
+import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
+import { Type } from "class-transformer";
+
+@InputType()
+class VideoDownloadUpdateInput {
+  @ApiProperty({
+    required: false,
+    enum: EnumVideoDownloadDownloadStatus,
+  })
+  @IsEnum(EnumVideoDownloadDownloadStatus)
+  @IsOptional()
+  @Field(() => EnumVideoDownloadDownloadStatus, {
+    nullable: true,
+  })
+  downloadStatus?: "Option1" | null;
+
+  @ApiProperty({
+    required: false,
+    type: () => UserWhereUniqueInput,
+  })
+  @ValidateNested()
+  @Type(() => UserWhereUniqueInput)
+  @IsOptional()
+  @Field(() => UserWhereUniqueInput, {
+    nullable: true,
+  })
+  user?: UserWhereUniqueInput | null;
+
+  @ApiProperty({
+    required: false,
+    type: String,
+  })
+  @IsString()
+  @IsOptional()
+  @Field(() => String, {
+    nullable: true,
+  })
+  videoUrl?: string | null;
+}
+
 export { VideoDownloadUpdateInput as VideoDownloadUpdateInput };

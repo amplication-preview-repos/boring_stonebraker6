@@ -11,11 +11,13 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsString, IsOptional } from "class-validator";
+import { IsDate, IsString, IsOptional, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { IsJSONValue } from "../../validators";
 import { GraphQLJSON } from "graphql-type-json";
 import { JsonValue } from "type-fest";
+import { Subscription } from "../../subscription/base/Subscription";
+import { VideoDownload } from "../../videoDownload/base/VideoDownload";
 
 @ObjectType()
 class User {
@@ -76,6 +78,15 @@ class User {
   roles!: JsonValue;
 
   @ApiProperty({
+    required: false,
+    type: () => [Subscription],
+  })
+  @ValidateNested()
+  @Type(() => Subscription)
+  @IsOptional()
+  subscriptions?: Array<Subscription>;
+
+  @ApiProperty({
     required: true,
   })
   @IsDate()
@@ -90,6 +101,15 @@ class User {
   @IsString()
   @Field(() => String)
   username!: string;
+
+  @ApiProperty({
+    required: false,
+    type: () => [VideoDownload],
+  })
+  @ValidateNested()
+  @Type(() => VideoDownload)
+  @IsOptional()
+  videoDownloads?: Array<VideoDownload>;
 }
 
 export { User as User };

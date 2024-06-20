@@ -49,11 +49,28 @@ export class VideoDownloadControllerBase {
     @common.Body() data: VideoDownloadCreateInput
   ): Promise<VideoDownload> {
     return await this.service.createVideoDownload({
-      data: data,
+      data: {
+        ...data,
+
+        user: data.user
+          ? {
+              connect: data.user,
+            }
+          : undefined,
+      },
       select: {
         createdAt: true,
+        downloadStatus: true,
         id: true,
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+
+        videoUrl: true,
       },
     });
   }
@@ -78,8 +95,17 @@ export class VideoDownloadControllerBase {
       ...args,
       select: {
         createdAt: true,
+        downloadStatus: true,
         id: true,
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+
+        videoUrl: true,
       },
     });
   }
@@ -103,8 +129,17 @@ export class VideoDownloadControllerBase {
       where: params,
       select: {
         createdAt: true,
+        downloadStatus: true,
         id: true,
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+
+        videoUrl: true,
       },
     });
     if (result === null) {
@@ -134,11 +169,28 @@ export class VideoDownloadControllerBase {
     try {
       return await this.service.updateVideoDownload({
         where: params,
-        data: data,
+        data: {
+          ...data,
+
+          user: data.user
+            ? {
+                connect: data.user,
+              }
+            : undefined,
+        },
         select: {
           createdAt: true,
+          downloadStatus: true,
           id: true,
           updatedAt: true,
+
+          user: {
+            select: {
+              id: true,
+            },
+          },
+
+          videoUrl: true,
         },
       });
     } catch (error) {
@@ -170,8 +222,17 @@ export class VideoDownloadControllerBase {
         where: params,
         select: {
           createdAt: true,
+          downloadStatus: true,
           id: true,
           updatedAt: true,
+
+          user: {
+            select: {
+              id: true,
+            },
+          },
+
+          videoUrl: true,
         },
       });
     } catch (error) {

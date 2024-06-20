@@ -11,10 +11,13 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsOptional } from "class-validator";
+import { IsString, IsOptional, ValidateNested } from "class-validator";
 import { IsJSONValue } from "../../validators";
 import { GraphQLJSON } from "graphql-type-json";
 import { InputJsonValue } from "../../types";
+import { SubscriptionCreateNestedManyWithoutUsersInput } from "./SubscriptionCreateNestedManyWithoutUsersInput";
+import { Type } from "class-transformer";
+import { VideoDownloadCreateNestedManyWithoutUsersInput } from "./VideoDownloadCreateNestedManyWithoutUsersInput";
 
 @InputType()
 class UserCreateInput {
@@ -67,12 +70,36 @@ class UserCreateInput {
   roles!: InputJsonValue;
 
   @ApiProperty({
+    required: false,
+    type: () => SubscriptionCreateNestedManyWithoutUsersInput,
+  })
+  @ValidateNested()
+  @Type(() => SubscriptionCreateNestedManyWithoutUsersInput)
+  @IsOptional()
+  @Field(() => SubscriptionCreateNestedManyWithoutUsersInput, {
+    nullable: true,
+  })
+  subscriptions?: SubscriptionCreateNestedManyWithoutUsersInput;
+
+  @ApiProperty({
     required: true,
     type: String,
   })
   @IsString()
   @Field(() => String)
   username!: string;
+
+  @ApiProperty({
+    required: false,
+    type: () => VideoDownloadCreateNestedManyWithoutUsersInput,
+  })
+  @ValidateNested()
+  @Type(() => VideoDownloadCreateNestedManyWithoutUsersInput)
+  @IsOptional()
+  @Field(() => VideoDownloadCreateNestedManyWithoutUsersInput, {
+    nullable: true,
+  })
+  videoDownloads?: VideoDownloadCreateNestedManyWithoutUsersInput;
 }
 
 export { UserCreateInput as UserCreateInput };
